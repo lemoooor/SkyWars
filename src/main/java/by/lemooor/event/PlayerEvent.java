@@ -34,8 +34,8 @@ public class PlayerEvent implements Listener {
             "Ожидание игроков", BarColor.WHITE, BarStyle.SEGMENTED_12
     );
 
-    public PlayerEvent() {
-        createMaps = new CreateMaps();
+    public PlayerEvent(String config) {
+        createMaps = new CreateMaps(config);
     }
 
     @EventHandler

@@ -20,15 +20,13 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public class PlayerEvent implements Listener {
-    private CreateMaps createMaps;
+    private final CreateMaps createMaps;
     private Iterator<Location> iterator;
 
     private Map<String, HashSet<Location>> map;
     private Map<String, ArrayList<ItemStack>> item;
 
-    private HashSet<UUID> players = new HashSet<>();
-
-    private BossBar bar = Bukkit.getServer().createBossBar(
+    private final BossBar bar = Bukkit.getServer().createBossBar(
             "Ожидание игроков", BarColor.WHITE, BarStyle.SEGMENTED_12
     );
 
@@ -39,10 +37,9 @@ public class PlayerEvent implements Listener {
     @EventHandler
     public void join(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
         bar.addPlayer(player);
-        players.add(player.getUniqueId());
 
         Bukkit.broadcastMessage(player.getName() + " присоединился к игре. [" + players.size() + "/2]");
 
@@ -106,36 +103,36 @@ public class PlayerEvent implements Listener {
 
     @EventHandler
     public void death(PlayerDeathEvent event) {
-        event.getEntity().setGameMode(GameMode.SPECTATOR);
-        boolean one = false;
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (event.getEntity().getGameMode() != GameMode.SPECTATOR) {
+        event.getEntity().setGameMode(GameMode.SPECTATOR);
+
+        boolean one = false;
+        Player alive = event.getEntity();
+
+        for (Player player : players) {
+            if (player.getGameMode() != GameMode.SPECTATOR) {
                 one = true;
+                alive = player;
                 continue;
             }
-            if (one && event.getEntity().getGameMode() != GameMode.SPECTATOR) {
+            if (one && player.getGameMode() != GameMode.SPECTATOR) {
                 return;
             }
         }
 
-        Iterator<UUID> iterator = players.iterator();
+        Bukkit.broadcastMessage(ChatColor.DARK_GREEN + alive.getName() + " победил");
 
-        while (iterator.hasNext()) {
-            Bukkit.getPlayer(iterator.next()).kickPlayer("gg");
-        }
+        Bukkit.getScheduler().runTaskLater(Main.getPlugin(Main.class), () -> {
+            for (Player player : players) {
+                player.kickPlayer("gg");
+            }
 
-        players.clear();
-    }
-
-    @EventHandler
-    public void leave(PlayerQuitEvent event) {
-        if (event.getPlayer().getServer().getOnlinePlayers().size() == 1) {
             MyWorldEdit.pasteSchematic(
                     "skywars_solo_1", new Location(
-                            event.getPlayer().getWorld(), 12, 27, 8
+                            event.getEntity().getWorld(), 12, 27, 8
                     ), false, Main.getPlugin(Main.class)
             );
-        }
+        }, 200);
     }
 }

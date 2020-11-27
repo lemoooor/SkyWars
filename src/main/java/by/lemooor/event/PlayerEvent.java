@@ -3,10 +3,7 @@ package by.lemooor.event;
 import by.lemooor.Main;
 import by.lemooor.MyWorldEdit;
 import by.lemooor.creator.CreateMaps;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Chest;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -14,6 +11,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -28,7 +26,7 @@ public class PlayerEvent implements Listener {
     private Map<String, HashSet<Location>> map;
     private Map<String, ArrayList<ItemStack>> item;
 
-    private HashSet<String> players = new HashSet<>();
+    private HashSet<UUID> players = new HashSet<>();
 
     private BossBar bar = Bukkit.getServer().createBossBar(
             "Ожидание игроков", BarColor.WHITE, BarStyle.SEGMENTED_12
@@ -41,9 +39,12 @@ public class PlayerEvent implements Listener {
     @EventHandler
     public void join(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        bar.addPlayer(player);
 
-        players.add(player.getName());
+
+        bar.addPlayer(player);
+        players.add(player.getUniqueId());
+
+        Bukkit.broadcastMessage(player.getName() + " присоединился к игре. [" + players.size() + "/2]");
 
         if (players.size() == 1) {
             createMaps.putting();
@@ -78,6 +79,8 @@ public class PlayerEvent implements Listener {
             }, 20);
 
             Bukkit.getScheduler().runTaskTimer(Main.getPlugin(Main.class), () -> {
+                Bukkit.broadcastMessage(ChatColor.YELLOW + "сундуки заполнены");
+
                 Random random = new Random();
 
                 for (int i = 1; i <= 3; i++) {
@@ -99,6 +102,30 @@ public class PlayerEvent implements Listener {
                 }
             }, 20, 2400);
         }
+    }
+
+    @EventHandler
+    public void death(PlayerDeathEvent event) {
+        event.getEntity().setGameMode(GameMode.SPECTATOR);
+        boolean one = false;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (event.getEntity().getGameMode() != GameMode.SPECTATOR) {
+                one = true;
+                continue;
+            }
+            if (one && event.getEntity().getGameMode() != GameMode.SPECTATOR) {
+                return;
+            }
+        }
+
+        Iterator<UUID> iterator = players.iterator();
+
+        while (iterator.hasNext()) {
+            Bukkit.getPlayer(iterator.next()).kickPlayer("gg");
+        }
+
+        players.clear();
     }
 
     @EventHandler

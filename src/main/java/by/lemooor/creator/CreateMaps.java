@@ -14,17 +14,21 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public class CreateMaps {
-    private Map<String, HashSet<Location>> allLocations = new HashMap<>();
-    private Map<String, ArrayList<ItemStack>> items = new HashMap<>();
+    private final String config;
 
-    public CreateMaps() {
+    private Map<String, Set<Location>> allLocations = new HashMap<>();
+    private Map<String, List<ItemStack>> items = new HashMap<>();
 
+    public CreateMaps(String config) {
+        this.config = config;
     }
 
     public void putting() {
         World world = Bukkit.getServer().getWorld("world");
 
-        MongoClient client = new MongoClient(new MongoClientURI("mongodb+srv://lemooor:SQ5ytAaGevB8rRL@cluster0.yfy8d.mongodb.net/test"));
+        MongoClient client = new MongoClient(
+                new MongoClientURI(config)
+        );
         MongoDatabase database = client.getDatabase("skyWars");
         MongoCollection<Document> collection = database.getCollection("points");
 
@@ -34,8 +38,8 @@ public class CreateMaps {
         }) {
             List<String> list = getDoc(collection, name.split(" ")[0]);
 
-            if(name.split(" ").length != 1) {
-                HashSet<Location> set = new HashSet<>();
+            if (name.split(" ").length != 1) {
+                Set<Location> set = new HashSet<>();
 
                 for (String loc : list) {
                     Location point = new Location(world,
@@ -50,14 +54,14 @@ public class CreateMaps {
 
                 allLocations.put(name.split(" ")[0], set);
             } else {
-                ArrayList<ItemStack> arrayList = new ArrayList<>();
+                List<ItemStack> arrayList = new ArrayList<>();
 
                 for (String id : list) {
                     ItemStack item = new ItemStack(
                             Integer.parseInt(id.split(" ")[0])
                     );
 
-                    if(id.split(" ").length != 1) {
+                    if (id.split(" ").length != 1) {
                         item.setAmount(
                                 Integer.parseInt(id.split(" ")[1])
                         );
@@ -74,11 +78,11 @@ public class CreateMaps {
         return collection.find(new Document("name", "points")).first().getList(name, String.class);
     }
 
-    public Map<String, HashSet<Location>> getMap() {
+    public Map<String, Set<Location>> getMap() {
         return allLocations;
     }
 
-    public Map<String, ArrayList<ItemStack>> getItems() {
+    public Map<String, List<ItemStack>> getItems() {
         return items;
     }
 }

@@ -13,7 +13,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -21,10 +20,10 @@ import java.util.*;
 
 public class PlayerEvent implements Listener {
     private final CreateMaps createMaps;
-    private Iterator<Location> iterator;
+    private Iterator<Location> locationIterator;
 
-    private Map<String, HashSet<Location>> map;
-    private Map<String, ArrayList<ItemStack>> item;
+    private Map<String, Set<Location>> map;
+    private Map<String, List<ItemStack>> item;
 
     private final BossBar bar = Bukkit.getServer().createBossBar(
             "Ожидание игроков", BarColor.WHITE, BarStyle.SEGMENTED_12
@@ -37,6 +36,7 @@ public class PlayerEvent implements Listener {
     @EventHandler
     public void join(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
         bar.addPlayer(player);
@@ -49,9 +49,9 @@ public class PlayerEvent implements Listener {
             map = createMaps.getMap();
             item = createMaps.getItems();
 
-            iterator = map.get("spawn").iterator();
+            locationIterator = map.get("spawn").iterator();
         }
-        Location teleport = iterator.next();
+        Location teleport = locationIterator.next();
 
         player.getInventory().setContents(new ItemStack[]{});
         player.setHealth(20);
@@ -81,8 +81,8 @@ public class PlayerEvent implements Listener {
                 Random random = new Random();
 
                 for (int i = 1; i <= 3; i++) {
-                    HashSet<Location> locations = map.get("chest_" + i);
-                    ArrayList<ItemStack> items = item.get("item_" + i);
+                    Set<Location> locations = map.get("chest_" + i);
+                    List<ItemStack> items = item.get("item_" + i);
 
                     for (Location location : locations) {
                         Chest chest = (Chest) location.getBlock().getState();
@@ -125,7 +125,7 @@ public class PlayerEvent implements Listener {
 
         Bukkit.getScheduler().runTaskLater(Main.getPlugin(Main.class), () -> {
             for (Player player : players) {
-                player.kickPlayer("gg");
+
             }
 
             MyWorldEdit.pasteSchematic(

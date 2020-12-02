@@ -32,10 +32,12 @@ public class CreateMaps {
         MongoDatabase database = client.getDatabase("skyWars");
         MongoCollection<Document> collection = database.getCollection("points");
 
-        for (String name : new String[]{
+        String[] names = new String[]{
                 "spawn 13", "chest_1 6", "chest_2 4",
                 "chest_3 4", "item_1", "item_2", "item_3"
-        }) {
+        };
+
+        for (String name : names) {
             List<String> list = getDoc(collection, name.split(" ")[0]);
 
             if (name.split(" ").length != 1) {

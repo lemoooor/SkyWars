@@ -65,7 +65,9 @@ public class PlayerEvent implements Listener {
             bar.removeAll();
 
             Bukkit.getScheduler().runTaskLater(Main.getPlugin(Main.class), () -> {
-                for (Location location : map.get("spawn")) {
+                Set<Location> locations = map.get("spawn");
+
+                for (Location location : locations) {
                     new Location(
                             location.getWorld(),
                             location.getX(),
